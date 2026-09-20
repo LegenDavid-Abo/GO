@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Trash2, TriangleAlert, X } from "lucide-react";
 import { browserSupabase, coverStoragePath } from "@/lib/supabase";
@@ -16,6 +17,10 @@ export default function DeleteEventButton({ eventId, eventName, coverUrl, onDele
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+
+  // The portal target (document.body) only exists in the browser.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   async function confirmDelete() {
     setDeleting(true);
@@ -44,6 +49,67 @@ export default function DeleteEventButton({ eventId, eventName, coverUrl, onDele
     }
   }
 
+  // FIX: the popup is rendered into <body> through a portal. Inside the
+  // dashboard's `.glass` event row, `position: fixed` gets trapped by the
+  // row's backdrop-filter and other rows paint on top of it.
+  const dialog = (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-5 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => !deleting && setOpen(false)}
+        >
+          <motion.div
+            className="glass-strong w-full max-w-sm rounded-3xl p-6 shadow-premium"
+            initial={{ opacity: 0, scale: 0.94, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 10 }}
+            transition={{ type: "spring", duration: 0.35, bounce: 0.25 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="grid h-11 w-11 place-items-center rounded-full bg-red-400/15 text-red-300">
+                <TriangleAlert size={20} />
+              </div>
+              <button onClick={() => !deleting && setOpen(false)} className="text-bone/40 hover:text-bone">
+                <X size={18} />
+              </button>
+            </div>
+
+            <h2 className="mt-4 text-xl font-medium">Delete &ldquo;{eventName}&rdquo;?</h2>
+            <p className="mt-2 text-sm leading-6 text-bone/50">
+              This permanently deletes the event, its cover image, its QR pass, and every scan record. This
+              cannot be undone.
+            </p>
+
+            {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setOpen(false)}
+                disabled={deleting}
+                className="flex-1 rounded-xl border border-white/12 py-2.5 text-sm hover:border-white/25"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-60"
+              >
+                {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={14} />}
+                Delete forever
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <>
       <button
@@ -54,61 +120,7 @@ export default function DeleteEventButton({ eventId, eventName, coverUrl, onDele
         <Trash2 size={13} /> Delete
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-5 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => !deleting && setOpen(false)}
-          >
-            <motion.div
-              className="glass-strong w-full max-w-sm rounded-3xl p-6 shadow-premium"
-              initial={{ opacity: 0, scale: 0.94, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 10 }}
-              transition={{ type: "spring", duration: 0.35, bounce: 0.25 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-start justify-between">
-                <div className="grid h-11 w-11 place-items-center rounded-full bg-red-400/15 text-red-300">
-                  <TriangleAlert size={20} />
-                </div>
-                <button onClick={() => !deleting && setOpen(false)} className="text-bone/40 hover:text-bone">
-                  <X size={18} />
-                </button>
-              </div>
-
-              <h2 className="mt-4 text-xl font-medium">Delete &ldquo;{eventName}&rdquo;?</h2>
-              <p className="mt-2 text-sm leading-6 text-bone/50">
-                This permanently deletes the event, its cover image, its QR pass, and every scan record. This
-                cannot be undone.
-              </p>
-
-              {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => setOpen(false)}
-                  disabled={deleting}
-                  className="flex-1 rounded-xl border border-white/12 py-2.5 text-sm hover:border-white/25"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  disabled={deleting}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-60"
-                >
-                  {deleting ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={14} />}
-                  Delete forever
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {mounted && createPortal(dialog, document.body)}
     </>
   );
 }
