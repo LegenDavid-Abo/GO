@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { HelpCircle, X } from "lucide-react";
 
@@ -26,15 +28,40 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel
 }: ConfirmDialogProps) {
-  return (
+  // The portal target (document.body) only exists in the browser, so we wait
+  // until after the first client render before drawing the dialog.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // Stop the page behind the dialog from scrolling while it's open.
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
+  if (!mounted) return null;
+
+  // FIX: render into <body> instead of inside the parent component.
+  // Parents like PassCard use `.glass` (backdrop-filter), which traps
+  // `position: fixed` children inside the card and stacks neighbouring cards
+  // on top of them. A portal escapes that, so the dialog always covers the
+  // whole screen, above everything else.
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-5 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-5 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => !busy && onCancel()}
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
         >
           <motion.div
             className="glass-strong w-full max-w-sm rounded-3xl p-6 shadow-premium"
@@ -81,6 +108,7 @@ export default function ConfirmDialog({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
