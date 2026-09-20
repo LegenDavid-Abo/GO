@@ -1,0 +1,180 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=DM+Sans:wght@400;500;600;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "DM Sans", -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #07080b;
+  color: #f6f3ec;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid #e0b96a;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Surfaces ---- */
+
+.glass {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px);
+}
+
+.hairline {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* ---- Brass accent utilities ---- */
+
+.text-brass {
+  color: #e0b96a;
+}
+
+.brass-rule {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(224, 185, 106, 0.9), rgba(224, 185, 106, 0));
+}
+
+.brass-text-gradient {
+  background: linear-gradient(120deg, #f3e2b6, #e0b96a 55%, #b7873a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ---- Backgrounds ---- */
+
+.grain {
+  position: relative;
+}
+
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.field-glow {
+  background-image:
+    radial-gradient(60rem 30rem at 15% -10%, rgba(224, 185, 106, 0.08), transparent 60%),
+    radial-gradient(50rem 30rem at 100% 0%, rgba(224, 185, 106, 0.05), transparent 55%);
+}
+
+/* ---- Form primitives ---- */
+
+.field-input {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.95rem 1.05rem;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.field-input:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.field-input:focus {
+  border-color: rgba(224, 185, 106, 0.55);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.field-input::placeholder {
+  color: rgba(246, 243, 236, 0.32);
+}
+
+/* ---- Ticket die-cut edge ---- */
+
+.ticket-notch {
+  position: relative;
+}
+
+.ticket-notch::before,
+.ticket-notch::after {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  background: #07080b;
+  border-radius: 999px;
+  left: -13px;
+}
+
+.ticket-notch::before {
+  top: -13px;
+}
+
+.ticket-notch::after {
+  bottom: -13px;
+}
+
+.ticket-perforation {
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.18) 0,
+    rgba(0, 0, 0, 0.18) 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  height: 1px;
+}
+
+/* ---- Scrollbar (subtle) ---- */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
